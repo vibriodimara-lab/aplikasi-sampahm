@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoBank - Bank Sampah & Pengelolaan Sampah Sekolah</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            eco: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              850: '#14532d',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons for beautiful modern UI -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js for statistics graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Custom Scrollbar for modern look */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Print Styling for Professional PDF Reports */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-full-width {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .print-grid {
+        display: block !important;
+      }
+      .print-card {
+        border: 1px solid #ccc !important;
+        margin-bottom: 20px !important;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-eco-50 via-emerald-50 to-teal-50 min-h-screen text-slate-800 font-sans antialiased">
+
+  <!-- Container Utama -->
+  <div class="max-w-7xl mx-auto px-4 py-6 md:py-10">
+    
+    <!-- HEADER & KONTROL NAVIGASI -->
+    <header class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-eco-100 mb-8 flex flex-col lg:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-4 flex-col sm:flex-row text-center sm:text-left">
+        <!-- SVG Logo Sekolah Eco Green -->
+        <div class="w-20 h-20 bg-eco-100 rounded-2xl flex items-center justify-center text-eco-600 shadow-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+            <path d="M12 6V18"/>
+            <path d="M12 6l-4 4"/>
+            <path d="M12 6l4 4"/>
+            <path d="M12 18l-4-4"/>
+            <path d="M12 18l4-4"/>
+            <circle cx="12" cy="12" r="3.5" fill="currentColor" class="text-eco-500 opacity-30" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-eco-900 tracking-tight flex items-center justify-center sm:justify-start gap-2">
+            <span>EcoBank SDN Hijau Lestari</span>
+          </h1>
+          <p class="text-slate-500 font-medium text-sm md:text-base">Membangun Karakter Peduli Lingkungan Sejak Dini</p>
+          <!-- Status Sinkronisasi Cloud -->
+          <div class="mt-2 flex items-center justify-center sm:justify-start gap-2 text-xs">
+            <span id="sync-status" class="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full font-bold shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+              Menghubungkan ke Cloud...
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Kontrol Tampilan & Aksi -->
+      <div class="flex flex-wrap gap-3 justify-center no-print">
+        <div class="bg-slate-100 p-1.5 rounded-2xl flex gap-1 border border-slate-200">
+          <button id="btn-mode-petugas" onclick="setMode('petugas')" class="px-4 py-2 rounded-xl text-sm font-bold transition-all bg-white text-eco-700 shadow">
+            👮 Petugas (Admin)
+          </button>
+          <button id="btn-mode-siswa" onclick="setMode('siswa')" class="px-4 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:text-slate-800">
+            🎒 Mode Siswa
+          </button>
+        </div>
+        <button onclick="window.print()" class="bg-eco-600 hover:bg-eco-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 text-sm">
+          <i data-lucide="printer" class="w-4.5 h-4.5"></i>
+          Cetak Laporan
+        </button>
+        <button onclick="konfirmasiReset()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 text-sm border border-rose-100">
+          <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
+          Reset Data
+        </button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD STATISTIK UTAMA -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <!-- Total Sampah Terkumpul -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-100 flex items-center gap-4">
+        <div class="p-3 bg-emerald-100 text-emerald-700 rounded-xl">
+          <i data-lucide="scale" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Sampah</p>
+          <h3 id="stat-sampah" class="text-2xl font-black text-slate-800">0 kg</h3>
+        </div>
+      </div>
+      
+      <!-- Total Poin Aktif -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-100 flex items-center gap-4">
+        <div class="p-3 bg-indigo-100 text-indigo-700 rounded-xl">
+          <i data-lucide="award" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Poin Beredar</p>
+          <h3 id="stat-poin" class="text-2xl font-black text-slate-800">0 pts</h3>
+        </div>
+      </div>
+
+      <!-- Total Hadir Aksi -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-100 flex items-center gap-4">
+        <div class="p-3 bg-amber-100 text-amber-700 rounded-xl">
+          <i data-lucide="user-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Partisipasi Aksi</p>
+          <h3 id="stat-partisipasi" class="text-2xl font-black text-slate-800">0 Kali</h3>
+        </div>
+      </div>
+
+      <!-- Total Hadiah Ditukar -->
+      <div class="bg-white p-5 rounded-2xl shadow-md border border-slate-100 flex items-center gap-4">
+        <div class="p-3 bg-purple-100 text-purple-700 rounded-xl">
+          <i data-lucide="gift" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hadiah Diklaim</p>
+          <h3 id="stat-hadiah" class="text-2xl font-black text-slate-800">0 Pcs</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRID PANEL & AKTIVITAS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 print-grid">
+      
+      <!-- KOLOM FORM INPUT (HANYA AKTIF DI MODE PETUGAS - NO PRINT) -->
+      <div id="panel-petugas" class="lg:col-span-1 space-y-6 no-print">
+        
+        <!-- FORM MASTER REGISTRASI SISWA BARU -->
+        <div class="bg-gradient-to-br from-emerald-800 to-eco-900 text-white rounded-3xl p-6 shadow-xl">
+          <h2 class="text-lg font-bold mb-2 flex items-center gap-2">
+            <i data-lucide="user-plus"></i>
+            Registrasi Siswa Baru (Selamanya)
+          </h2>
+          <p class="text-xs text-emerald-100 mb-4">Daftarkan nama siswa di sini agar tersimpan permanen di database sekolah.</p>
+          
+          <form id="formRegistrasi" onsubmit="event.preventDefault(); registrasiSiswaBaru();" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-emerald-200 mb-1">Nama Lengkap Siswa</label>
+              <input type="text" id="reg-nama" placeholder="Contoh: Andi Wijaya..." 
+                     class="w-full px-4 py-2 rounded-xl bg-white/15 border border-white/20 text-white placeholder-emerald-300 focus:outline-none focus:ring-2 focus:ring-white transition-all text-sm" required>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-bold text-emerald-200 mb-1">Kelas</label>
+                <input type="text" id="reg-kelas" placeholder="Contoh: 4-A" 
+                       class="w-full px-4 py-2 rounded-xl bg-white/15 border border-white/20 text-white placeholder-emerald-300 focus:outline-none focus:ring-2 focus:ring-white transition-all text-sm" required>
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-white text-eco-900 hover:bg-eco-100 font-extrabold py-2 px-3 rounded-xl transition-all text-xs shadow-md flex items-center justify-center gap-1.5">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                  Daftarkan
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- FORM TABUNG SAMPAH -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100">
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <i data-lucide="database-backup" class="text-eco-600"></i>
+            Setor Tabungan Sampah
+          </h2>
+          
+          <form id="formSetor" onsubmit="event.preventDefault(); tambahTransaksiSampah();" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-600 mb-1">Nama Siswa (Pilih dari Daftar)</label>
+              <!-- Input dengan autocomplete Datalist dari database -->
+              <input type="text" id="nama" list="datalist-siswa" placeholder="Pilih atau cari nama siswa..." 
+                     class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-eco-500 outline-none transition-all" required>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1">Jenis Sampah</label>
+                <select id="jenis" onchange="hitungPerkiraanPoin()"
+                        class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-eco-500 outline-none bg-white transition-all">
+                  <option value="Plastik" data-multiplier="15">Plastik (15 pts)</option>
+                  <option value="Kertas" data-multiplier="10">Kertas (10 pts)</option>
+                  <option value="Kaleng" data-multiplier="20">Kaleng (20 pts)</option>
+                  <option value="Kaca" data-multiplier="25">Kaca (25 pts)</option>
+                  <option value="Logam" data-multiplier="30">Logam (30 pts)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1">Berat (Kg)</label>
+                <input type="number" id="berat" min="0.1" max="100" step="0.1" value="1.0" oninput="hitungPerkiraanPoin()"
+                       class="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-eco-500 outline-none transition-all" required>
+              </div>
+            </div>
+
+            <!-- Tampilan Kalkulasi Instan Poin -->
+            <div class="bg-eco-50 border border-eco-200 rounded-2xl p-4 flex justify-between items-center text-eco-900">
+              <span class="text-sm font-bold">Estimasi Poin Diperoleh:</span>
+              <span id="estimasi-poin" class="text-xl font-black text-eco-700">15 pts</span>
+            </div>
+
+            <button type="submit" class="w-full bg-eco-600 hover:bg-eco-700 text-white font-bold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-150 flex items-center justify-center gap-2">
+              <i data-lucide="check-circle" class="w-5 h-5"></i>
+              Simpan Transaksi
+            </button>
+          </form>
+        </div>
+
+        <!-- FORM ABSENSI AKSI SOSIAL LINGKUNGAN -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100">
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <i data-lucide="calendar" class="text-emerald-600"></i>
+            Absensi Aksi Bersih Lingkungan
+          </h2>
+          <p class="text-xs text-slate-400 mb-4">Siswa yang hadir berhak menerima bonus apresiasi instan +50 Poin.</p>
+          
+          <form id="formAbsen" onsubmit="event.preventDefault(); simpanAbsenAksi();" class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-600 mb-1">Nama Siswa</label>
+              <input type="text" id="absen-nama" list="datalist-siswa" placeholder="Pilih nama siswa yang ikut..." 
+                     class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-eco-500 outline-none transition-all" required>
+            </div>
+            
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+              <i data-lucide="award" class="w-4.5 h-4.5"></i>
+              Catat Keikutsertaan (+50 pts)
+            </button>
+          </form>
+        </div>
+
+        <!-- STATISTIK GRAFIK PIE -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100">
+          <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <i data-lucide="pie-chart" class="text-indigo-600"></i>
+            Proporsi Jenis Sampah Terkumpul
+          </h3>
+          <div class="relative h-48 flex justify-center">
+            <canvas id="chartProporsiSampah"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- PORTAL MODE SISWA (MOCK LOGIN SEBAGAI SISWA - NO PRINT) -->
+      <div id="panel-siswa" class="lg:col-span-1 space-y-6 no-print hidden">
+        <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
+          <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full"></div>
+          
+          <h2 class="text-lg font-bold flex items-center gap-2 mb-4">
+            <i data-lucide="user" class="text-indigo-300"></i>
+            Cari Buku Rekening Siswa
+          </h2>
+          <p class="text-xs text-indigo-200 mb-4">Pilih namamu di bawah ini untuk melihat total tabungan, riwayat kegiatan, dan opsi klaim hadiah.</p>
+          
+          <div class="space-y-3">
+            <input type="text" id="pencarian-siswa" list="datalist-siswa" oninput="pencarianProfilSiswa()" placeholder="Ketik atau pilih namamu..." 
+                   class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all">
+          </div>
+
+          <!-- TAMPILAN PROFIL SISWA JIKA TERSEDIA -->
+          <div id="profil-siswa-container" class="mt-6 pt-6 border-t border-white/10 hidden">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 id="profil-nama" class="font-extrabold text-xl text-indigo-100">-</h3>
+                <p id="profil-total-sampah" class="text-xs text-indigo-300 mt-0.5">Kontribusi: 0 kg sampah</p>
+              </div>
+              <div class="bg-emerald-500 text-white font-black text-2xl px-4 py-2 rounded-2xl shadow-inner text-center">
+                <span id="profil-poin" class="block">0</span>
+                <span class="text-[10px] font-semibold uppercase tracking-wider">Poin</span>
+              </div>
+            </div>
+            
+            <h4 class="text-xs font-extrabold uppercase text-indigo-300 tracking-wider mb-2">Riwayat Transaksi Kamu:</h4>
+            <div id="profil-riwayat" class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+              <!-- Riwayat siswa yang login -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KOLOM INFORMASI DATA, LEADERBOARD & HADIAH (PRINT-FULL-WIDTH) -->
+      <div class="lg:col-span-2 space-y-6 print-full-width">
+        
+        <!-- KATALOG PENUKARAN HADIAH (DASHBOARD KREATIF) -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 print-card no-print">
+          <h3 class="text-lg font-extrabold text-slate-800 mb-2 flex items-center gap-2">
+            <i data-lucide="gift" class="text-purple-600"></i>
+            Tukarkan Poin dengan Hadiah Ramah Anak
+          </h3>
+          <p class="text-xs text-slate-400 mb-4">Poin siswa dapat ditukarkan dengan hadiah edukasi langsung di sekolah.</p>
+          
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Hadiah 1 -->
+            <div class="border border-slate-100 hover:border-purple-200 rounded-2xl p-4 text-center transition-all bg-purple-50/20 relative group">
+              <span class="text-3xl">📓</span>
+              <h4 class="font-bold text-slate-800 text-sm mt-2">Buku Tulis Tebal</h4>
+              <p class="text-xs text-slate-400 mt-1">Biaya: <span class="font-extrabold text-purple-600">50 Poin</span></p>
+              <button onclick="bukaModalTukar('Buku Tulis Tebal', 50)" class="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition-all">
+                Tukar Poin
+              </button>
+            </div>
+            <!-- Hadiah 2 -->
+            <div class="border border-slate-100 hover:border-purple-200 rounded-2xl p-4 text-center transition-all bg-purple-50/20 relative group">
+              <span class="text-3xl">✏️</span>
+              <h4 class="font-bold text-slate-800 text-sm mt-2">Set Pensil & Penghapus</h4>
+              <p class="text-xs text-slate-400 mt-1">Biaya: <span class="font-extrabold text-purple-600">30 Poin</span></p>
+              <button onclick="bukaModalTukar('Set Pensil & Penghapus', 30)" class="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition-all">
+                Tukar Poin
+              </button>
+            </div>
+            <!-- Hadiah 3 -->
+            <div class="border border-slate-100 hover:border-purple-200 rounded-2xl p-4 text-center transition-all bg-purple-50/20 relative group">
+              <span class="text-3xl">🥤</span>
+              <h4 class="font-bold text-slate-800 text-sm mt-2">Tumbler Sekolah</h4>
+              <p class="text-xs text-slate-400 mt-1">Biaya: <span class="font-extrabold text-purple-600">200 Poin</span></p>
+              <button onclick="bukaModalTukar('Tumbler Sekolah', 200)" class="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition-all">
+                Tukar Poin
+              </button>
+            </div>
+            <!-- Hadiah 4 -->
+            <div class="border border-slate-100 hover:border-purple-200 rounded-2xl p-4 text-center transition-all bg-purple-50/20 relative group">
+              <span class="text-3xl">🍎</span>
+              <h4 class="font-bold text-slate-800 text-sm mt-2">Kupon Kantin Sehat</h4>
+              <p class="text-xs text-slate-400 mt-1">Biaya: <span class="font-extrabold text-purple-600">100 Poin</span></p>
+              <button onclick="bukaModalTukar('Kupon Kantin Sehat', 100)" class="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-sm transition-all">
+                Tukar Poin
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LEADERBOARD / PAPAN PERINGKAT KONTRIBUSI TERBESAR -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 print-card">
+          <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <i data-lucide="trophy" class="text-amber-500 animate-bounce"></i>
+            🏆 Juara Penabung Sampah Sekolah Teraktif
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6" id="top-three">
+            <!-- Render visualisasi podium 3 terbaik -->
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-100 text-slate-400">
+                  <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider w-16 text-center">Rank</th>
+                  <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider">Nama Siswa</th>
+                  <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-center">Total Berat</th>
+                  <th class="py-3 px-4 text-xs font-bold uppercase tracking-wider text-right">Sisa Poin Aktif</th>
+                </tr>
+              </thead>
+              <tbody id="tabelRanking" class="divide-y divide-slate-100">
+                <!-- Data peringkat dimuat otomatis -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TABEL DATA MASTER SISWA TERDAFTAR (NO-PRINT) -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 print-card no-print">
+          <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <i data-lucide="users" class="text-emerald-600"></i>
+              🎒 Daftar Anggota Siswa Terdaftar (Selamanya)
+            </span>
+            <span id="registered-count" class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">0 Siswa</span>
+          </h3>
+          <div class="max-h-60 overflow-y-auto border border-slate-100 rounded-2xl">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-xs">
+                  <th class="py-2.5 px-4 font-bold">Nama Lengkap</th>
+                  <th class="py-2.5 px-4 font-bold text-center">Kelas</th>
+                  <th class="py-2.5 px-4 font-bold text-center w-16">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelSiswaTerdaftar" class="divide-y divide-slate-100 text-xs">
+                <!-- Daftar siswa terdaftar akan dimuat di sini -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TABEL UTAMA RIWAYAT TRANSAKSI DAN KEGIATAN -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 print-card">
+          <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center justify-between">
+            <span class="flex items-center gap-2">
+              <i data-lucide="history" class="text-eco-600"></i>
+              Riwayat Penyetoran & Aksi Hari Ini
+            </span>
+            <span id="record-count" class="text-sm bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-bold">0 Data</span>
+          </h3>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 rounded-xl">
+                  <th class="py-3 px-4 font-bold text-sm rounded-l-xl w-12">No</th>
+                  <th class="py-3 px-4 font-bold text-sm">Nama Lengkap</th>
+                  <th class="py-3 px-4 font-bold text-sm text-center">Jenis Aktivitas</th>
+                  <th class="py-3 px-4 font-bold text-sm text-center">Berat (Kg)</th>
+                  <th class="py-3 px-4 font-bold text-sm text-center">Poin</th>
+                  <th class="py-3 px-4 font-bold text-sm text-center no-print rounded-r-xl w-16">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelData" class="divide-y divide-slate-100">
+                <!-- Baris data dimuat otomatis -->
+              </tbody>
+            </table>
+            
+            <!-- Keadaan Kosong (Empty State) -->
+            <div id="empty-state" class="text-center py-12 hidden">
+              <div class="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="inbox" class="w-8 h-8"></i>
+              </div>
+              <h4 class="text-slate-600 font-bold text-sm">Belum Ada Transaksi Tercatat</h4>
+              <p class="text-slate-400 text-xs mt-1">Gunakan panel di samping kiri untuk menginput data penimbangan baru.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- DAFTAR PENUKARAN HADIAH YANG SUDAH DILAKUKAN -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 print-card">
+          <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <i data-lucide="award" class="text-purple-600"></i>
+            🎁 Riwayat Klaim Penukaran Hadiah Siswa
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-100 text-slate-400 text-xs uppercase font-bold">
+                  <th class="py-3 px-4">Nama Siswa</th>
+                  <th class="py-3 px-4">Nama Hadiah</th>
+                  <th class="py-3 px-4 text-center">Poin Terpakai</th>
+                  <th class="py-3 px-4 text-right">Waktu</th>
+                </tr>
+              </thead>
+              <tbody id="tabelHadiahKlaim" class="divide-y divide-slate-100 text-sm">
+                <!-- Riwayat klaim hadiah -->
+              </tbody>
+            </table>
+            <div id="empty-hadiah-state" class="text-center py-6 text-slate-400 text-xs italic hidden">
+              Belum ada hadiah yang ditukarkan siswa hari ini.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- DATALIST UNTUK AUTOCOMPLETE NAMA SISWA -->
+  <datalist id="datalist-siswa">
+    <!-- Diisi secara dinamis dari database -->
+  </datalist>
+
+  <!-- TOAST NOTIFICATION SYSTEM -->
+  <div id="toast" class="fixed bottom-6 right-6 transform translate-y-24 opacity-0 bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 z-50">
+    <span id="toast-icon" class="text-emerald-400"></span>
+    <span id="toast-message" class="text-sm font-semibold"></span>
+  </div>
+
+  <!-- MODAL PENUKARAN HADIAH -->
+  <div id="modalTukar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-200">
+      <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-4">
+        <i data-lucide="gift" class="w-6 h-6"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800">Klaim Penukaran Hadiah</h3>
+      <p class="text-slate-500 text-xs mt-1">Anda memilih hadiah: <span id="nama-hadiah-pilihan" class="font-bold text-purple-600">Hadiah</span> (<span id="biaya-hadiah-pilihan" class="font-bold">0</span> Poin)</p>
+      
+      <div class="mt-4">
+        <label class="block text-xs font-bold text-slate-600 mb-1">Pilih Nama Siswa yang Menukarkan</label>
+        <input type="text" id="nama-siswa-tukar" list="datalist-siswa" placeholder="Ketik atau pilih nama siswa..." 
+               class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-purple-500 outline-none transition-all text-sm">
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button onclick="tutupModalTukar()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-all text-xs">Batal</button>
+        <button onclick="prosesPenukaranHadiah()" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-all text-xs shadow-md">Tukarkan Poin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM CONFIRMATION MODAL -->
+  <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-200">
+      <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mb-4">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800">Hapus Semua Data?</h3>
+      <p class="text-slate-500 text-xs mt-2">Seluruh database transaksi, absensi kegiatan, dan penukaran hadiah akan dihapus permanen dari Cloud Database.</p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button onclick="closeConfirmModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-all text-xs">Batal</button>
+        <button id="btn-confirm-delete" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition-all text-xs">Ya, Kosongkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE INTEGRATION & DATABASE SCRIPT -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Setup Identitas Aplikasi & Konfigurasi Firebase
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'ecobank-sekolah-app';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+      apiKey: "",
+      authDomain: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
+
+    // Inisialisasi Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Variabel Penyimpanan State Lokal Aplikasi
+    let dataTransaksi = [];
+    let dataHadiah = [];
+    let dataSiswaTerdaftar = [];
+    let chartInstance = null;
+    let currentUser = null;
+
+    // Inisialisasi Otentikasi Terlebih Dahulu (RULE 3)
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (error) {
+        console.error("Gagal melakukan otentikasi Firebase:", error);
+        showToast("Gagal menyambung ke server keamanan.", "alert-circle", "rose");
+      }
+    };
+
+    initAuth();
+
+    // Pantau Perubahan Status Autentikasi
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        document.getElementById('sync-status').className = "inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold shadow-sm";
+        document.getElementById('sync-status').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Tersambung ke Cloud`;
+        
+        // Memulai sinkronisasi data dari Firestore secara Realtime (RULE 1 & 2)
+        sinkronisasiDataRealtime();
+      } else {
+        document.getElementById('sync-status').className = "inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full font-bold shadow-sm";
+        document.getElementById('sync-status').innerHTML = `<span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> Menyambungkan...`;
+      }
+    });
+
+    // Sinkronisasi data real-time dengan Cloud Firestore untuk tiga tabel (Transaksi, Hadiah, dan Daftar Siswa)
+    function sinkronisasiDataRealtime() {
+      if (!currentUser) return;
+
+      const trxRef = collection(db, 'artifacts', appId, 'public', 'data', 'transaksiSampah');
+      const rewardRef = collection(db, 'artifacts', appId, 'public', 'data', 'penukaranHadiah');
+      const siswaRef = collection(db, 'artifacts', appId, 'public', 'data', 'daftarSiswa');
+      
+      // onSnapshot untuk riwayat transaksi
+      onSnapshot(trxRef, (snapshot) => {
+        dataTransaksi = [];
+        snapshot.forEach((doc) => {
+          dataTransaksi.push({ id: doc.id, ...doc.data() });
+        });
+        prosesSertaRenderUI();
+      }, (error) => {
+        console.error("Gagal sinkronisasi data transaksi:", error);
+        showToast("Koneksi gagal saat menyinkronkan data.", "alert-triangle", "rose");
+      });
+
+      // onSnapshot untuk riwayat penukaran hadiah
+      onSnapshot(rewardRef, (snapshot) => {
+        dataHadiah = [];
+        snapshot.forEach((doc) => {
+          dataHadiah.push({ id: doc.id, ...doc.data() });
+        });
+        prosesSertaRenderUI();
+      }, (error) => {
+        console.error("Gagal sinkronisasi data hadiah:", error);
+      });
+
+      // onSnapshot untuk master daftar siswa permanen
+      onSnapshot(siswaRef, (snapshot) => {
+        dataSiswaTerdaftar = [];
+        snapshot.forEach((doc) => {
+          dataSiswaTerdaftar.push({ id: doc.id, ...doc.data() });
+        });
+        updateDatalistSiswa();
+        renderTabelSiswaTerdaftar();
+      }, (error) => {
+        console.error("Gagal sinkronisasi master siswa:", error);
+      });
+    }
+
+    // Fungsi: Registrasi Siswa Baru (Simpan Selamanya)
+    window.registrasiSiswaBaru = async function() {
+      const namaInput = document.getElementById("reg-nama");
+      const kelasInput = document.getElementById("reg-kelas");
+
+      const nama = namaInput.value.trim();
+      const kelas = kelasInput.value.trim();
+
+      if (!nama || !kelas) {
+        showToast("Lengkapi nama dan kelas siswa terlebih dahulu!", "info", "amber");
+        return;
+      }
+
+      // Cek apakah siswa dengan nama tersebut sudah pernah didaftarkan
+      const sudahAda = dataSiswaTerdaftar.some(s => s.nama.toUpperCase() === nama.toUpperCase());
+      if (sudahAda) {
+        showToast(`Siswa bernama "${nama}" sudah terdaftar!`, "alert-circle", "amber");
+        return;
+      }
+
+      const siswaBaru = {
+        nama: nama,
+        kelas: kelas,
+        tanggalDaftar: new Date().toISOString()
+      };
+
+      try {
+        if (!currentUser) return;
+        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'daftarSiswa');
+        await addDoc(colRef, siswaBaru);
+
+        showToast(`Siswa "${nama}" (Kelas ${kelas}) berhasil didaftarkan selamanya!`, "user-check", "emerald");
+        namaInput.value = "";
+        kelasInput.value = "";
+      } catch (error) {
+        console.error("Gagal mendaftarkan siswa:", error);
+        showToast("Gagal menyimpan ke database cloud.", "alert-triangle", "rose");
+      }
+    };
+
+    // Fungsi: Hapus Siswa dari Master Database
+    window.hapusSiswaTerdaftar = async function(id, nama) {
+      if (!currentUser) return;
+      try {
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'daftarSiswa', id);
+        await deleteDoc(docRef);
+        showToast(`Siswa "${nama}" telah dihapus dari sistem.`, "trash", "indigo");
+      } catch (error) {
+        console.error("Gagal menghapus siswa dari master:", error);
+      }
+    };
+
+    // Fungsi: Update HTML Datalist autocomplete
+    function updateDatalistSiswa() {
+      const dl = document.getElementById("datalist-siswa");
+      dl.innerHTML = "";
+      
+      // Urutkan siswa berdasarkan nama secara alfabetis
+      const siswaTerurut = [...dataSiswaTerdaftar].sort((a, b) => a.nama.localeCompare(b.nama));
+      
+      siswaTerurut.forEach((siswa) => {
+        dl.innerHTML += `<option value="${siswa.nama}"></option>`;
+      });
+    }
+
+    // Fungsi: Render Tabel Siswa Terdaftar
+    function renderTabelSiswaTerdaftar() {
+      const tbody = document.getElementById("tabelSiswaTerdaftar");
+      const countSpan = document.getElementById("registered-count");
+      
+      tbody.innerHTML = "";
+      countSpan.innerText = `${dataSiswaTerdaftar.length} Siswa`;
+
+      if (dataSiswaTerdaftar.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-400 italic">Belum ada siswa yang terdaftar.</td></tr>`;
+        return;
+      }
+
+      const siswaTerurut = [...dataSiswaTerdaftar].sort((a, b) => a.nama.localeCompare(b.nama));
+      siswaTerurut.forEach((siswa) => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-2 px-4 font-bold text-slate-800">${siswa.nama}</td>
+            <td class="py-2 px-4 text-center text-slate-500 font-semibold">${siswa.kelas}</td>
+            <td class="py-2 px-4 text-center">
+              <button onclick="hapusSiswaTerdaftar('${siswa.id}', '${siswa.nama.replace(/'/g, "\\'")}')" class="p-1 hover:bg-rose-50 text-slate-300 hover:text-rose-600 rounded transition-all">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      lucide.createIcons();
+    }
+
+    // Ekspor fungsi agar dapat dipanggil secara global di HTML
+    window.tambahTransaksiSampah = async function() {
+      const namaInput = document.getElementById("nama");
+      const jenisSelect = document.getElementById("jenis");
+      const beratInput = document.getElementById("berat");
+
+      const nama = namaInput.value.trim();
+      const jenis = jenisSelect.value;
+      const berat = parseFloat(beratInput.value) || 0;
+
+      if (!nama || berat <= 0) {
+        showToast("Lengkapi nama siswa dan berat sampah terlebih dahulu!", "info", "amber");
+        return;
+      }
+
+      // Pastikan nama siswa tersebut sudah terdaftar di master database untuk validasi integritas data
+      const terdaftar = dataSiswaTerdaftar.some(s => s.nama.toUpperCase() === nama.toUpperCase());
+      if (!terdaftar) {
+        showToast(`Nama "${nama}" belum terdaftar! Silakan daftarkan nama siswa di atas terlebih dahulu agar tidak hilang.`, "alert-triangle", "rose");
+        return;
+      }
+
+      // Hitung poin berdasarkan pengali jenis sampah
+      const multiplier = parseFloat(jenisSelect.options[jenisSelect.selectedIndex].getAttribute("data-multiplier"));
+      const poin = Math.round(berat * multiplier);
+
+      const transaksiBaru = {
+        tipe: "deposit",
+        nama: nama,
+        jenis: jenis,
+        berat: berat,
+        poin: poin,
+        tanggal: new Date().toISOString()
+      };
+
+      try {
+        if (!currentUser) return;
+        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'transaksiSampah');
+        await addDoc(colRef, transaksiBaru);
+
+        showToast(`Berhasil menyimpan tabungan ${nama} (+${poin} pts)!`, "check-circle", "emerald");
+        namaInput.value = "";
+        beratInput.value = "1.0";
+        hitungPerkiraanPoin();
+      } catch (error) {
+        console.error("Gagal menyimpan transaksi:", error);
+        showToast("Gagal menyimpan transaksi.", "alert-triangle", "rose");
+      }
+    };
+
+    window.simpanAbsenAksi = async function() {
+      const namaInput = document.getElementById("absen-nama");
+      const nama = namaInput.value.trim();
+
+      if (!nama) {
+        showToast("Ketik nama siswa yang hadir aksi terlebih dahulu!", "info", "amber");
+        return;
+      }
+
+      // Pastikan siswa terdaftar
+      const terdaftar = dataSiswaTerdaftar.some(s => s.nama.toUpperCase() === nama.toUpperCase());
+      if (!terdaftar) {
+        showToast(`Siswa "${nama}" belum terdaftar! Silakan registrasikan nama siswa di atas terlebih dahulu.`, "alert-triangle", "rose");
+        return;
+      }
+
+      const absenBaru = {
+        tipe: "absen",
+        nama: nama,
+        jenis: "Aksi Bersih",
+        berat: 0,
+        poin: 50,
+        tanggal: new Date().toISOString()
+      };
+
+      try {
+        if (!currentUser) return;
+        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'transaksiSampah');
+        await addDoc(colRef, absenBaru);
+
+        showToast(`Absensi ${nama} tersimpan (+50 Poin)!`, "award", "indigo");
+        namaInput.value = "";
+      } catch (error) {
+        console.error("Gagal menyimpan absensi:", error);
+        showToast("Gagal mendaftarkan absensi.", "alert-triangle", "rose");
+      }
+    };
+
+    window.prosesPenukaranHadiah = async function() {
+      const namaSiswaInput = document.getElementById("nama-siswa-tukar");
+      const namaSiswa = namaSiswaInput.value.trim();
+      const namaHadiah = document.getElementById("nama-hadiah-pilihan").innerText;
+      const biayaPoin = parseInt(document.getElementById("biaya-hadiah-pilihan").innerText);
+
+      if (!namaSiswa) {
+        showToast("Silakan isi nama siswa yang ingin menukar hadiah!", "info", "amber");
+        return;
+      }
+
+      // Pastikan siswa terdaftar
+      const terdaftar = dataSiswaTerdaftar.some(s => s.nama.toUpperCase() === namaSiswa.toUpperCase());
+      if (!terdaftar) {
+        showToast(`Siswa "${namaSiswa}" belum terdaftar! Registrasikan nama siswa terlebih dahulu.`, "alert-triangle", "rose");
+        return;
+      }
+
+      // Validasi ketersediaan saldo poin siswa yang bersangkutan secara lokal terlebih dahulu
+      const sisaSaldo = hitungSaldoSiswaSpesifik(namaSiswa);
+      if (sisaSaldo < biayaPoin) {
+        showToast(`Klaim gagal! Poin ${namaSiswa} tidak mencukupi (Hanya memiliki ${sisaSaldo} Pts)`, "alert-circle", "rose");
+        return;
+      }
+
+      const dataKlaim = {
+        namaSiswa: namaSiswa,
+        namaHadiah: namaHadiah,
+        poinDipotong: biayaPoin,
+        tanggal: new Date().toISOString()
+      };
+
+      try {
+        if (!currentUser) return;
+        const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'penukaranHadiah');
+        await addDoc(colRef, dataKlaim);
+
+        showToast(`Klaim Sukses! Hadiah ${namaHadiah} diserahkan ke ${namaSiswa}.`, "gift", "emerald");
+        tutupModalTukar();
+      } catch (error) {
+        console.error("Gagal menukarkan hadiah:", error);
+        showToast("Gagal memproses klaim hadiah.", "alert-triangle", "rose");
+      }
+    };
+
+    window.hapusTransaksi = async function(id, nama) {
+      if (!currentUser) return;
+      try {
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'transaksiSampah', id);
+        await deleteDoc(docRef);
+        showToast(`Hapus transaksi ${nama} sukses!`, "trash", "indigo");
+      } catch (error) {
+        console.error("Gagal menghapus dokumen:", error);
+        showToast("Gagal menghapus data.", "alert-triangle", "rose");
+      }
+    };
+
+    window.resetSemuaData = async function() {
+      if (!currentUser) return;
+      try {
+        const batch = writeBatch(db);
+        
+        // Hapus semua dokumen di transaksiSampah
+        dataTransaksi.forEach((item) => {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'transaksiSampah', item.id);
+          batch.delete(docRef);
+        });
+
+        // Hapus semua dokumen di penukaranHadiah
+        dataHadiah.forEach((item) => {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'penukaranHadiah', item.id);
+          batch.delete(docRef);
+        });
+
+        // Hapus semua dokumen di daftarSiswa
+        dataSiswaTerdaftar.forEach((item) => {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'daftarSiswa', item.id);
+          batch.delete(docRef);
+        });
+
+        await batch.commit();
+        closeConfirmModal();
+        showToast("Seluruh database sekolah dikosongkan!", "trash", "rose");
+      } catch (error) {
+        console.error("Gagal melakukan reset:", error);
+        showToast("Proses reset data gagal.", "alert-triangle", "rose");
+      }
+    };
+
+    // Fungsi Pembantu: Menghitung saldo poin aktual siswa secara real-time berdasarkan riwayat
+    function hitungSaldoSiswaSpesifik(nama) {
+      const key = nama.trim().toUpperCase();
+      let totalPoinDiperoleh = 0;
+      let totalPoinDipotong = 0;
+
+      dataTransaksi.forEach((t) => {
+        if (t.nama.trim().toUpperCase() === key) {
+          totalPoinDiperoleh += (t.poin || 0);
+        }
+      });
+
+      dataHadiah.forEach((h) => {
+        if (h.namaSiswa.trim().toUpperCase() === key) {
+          totalPoinDipotong += (h.poinDipotong || 0);
+        }
+      });
+
+      return totalPoinDiperoleh - totalPoinDipotong;
+    }
+
+    // PROSES UTAMA & RENDERING UI
+    function prosesSertaRenderUI() {
+      const tabel = document.getElementById("tabelData");
+      const tabelRanking = document.getElementById("tabelRanking");
+      const tabelHadiahKlaim = document.getElementById("tabelHadiahKlaim");
+      const emptyState = document.getElementById("empty-state");
+      const emptyHadiahState = document.getElementById("empty-hadiah-state");
+
+      // Reset tampilan tabel
+      tabel.innerHTML = "";
+      tabelRanking.innerHTML = "";
+      tabelHadiahKlaim.innerHTML = "";
+
+      // 1. HITUNG STATISTIK DASHBOARD UTAMA
+      let totalSampah = 0;
+      let totalPartisipasi = 0;
+      let totalPoinBeredar = 0;
+      let totalHadiahDitukar = dataHadiah.length;
+
+      const proporsiJenis = { Plastik: 0, Kertas: 0, Kaleng: 0, Kaca: 0, Logam: 0 };
+
+      // Kalkulasi akumulasi per siswa
+      const rekapSiswa = {};
+
+      dataTransaksi.forEach((t) => {
+        const key = t.nama.toUpperCase();
+        
+        // Klasifikasi Jenis
+        if (t.tipe === "deposit") {
+          totalSampah += (t.berat || 0);
+          if (proporsiJenis[t.jenis] !== undefined) {
+            proporsiJenis[t.jenis] += (t.berat || 0);
+          }
+        } else if (t.tipe === "absen") {
+          totalPartisipasi++;
+        }
+
+        // Akumulasi Poin Masuk
+        if (!rekapSiswa[key]) {
+          rekapSiswa[key] = { nama: t.nama, totalPoin: 0, totalSampah: 0 };
+        }
+        rekapSiswa[key].totalPoin += (t.poin || 0);
+        rekapSiswa[key].totalSampah += (t.berat || 0);
+      });
+
+      // Kurangkan poin dari penukaran hadiah
+      dataHadiah.forEach((h) => {
+        const key = h.namaSiswa.toUpperCase();
+        if (rekapSiswa[key]) {
+          rekapSiswa[key].totalPoin -= (h.poinDipotong || 0);
+        } else {
+          rekapSiswa[key] = { nama: h.namaSiswa, totalPoin: -h.poinDipotong, totalSampah: 0 };
+        }
+      });
+
+      // Total Poin Beredar di Seluruh Siswa
+      Object.values(rekapSiswa).forEach((s) => {
+        totalPoinBeredar += Math.max(0, s.totalPoin);
+      });
+
+      // Update Tampilan Kartu Dashboard
+      document.getElementById("stat-sampah").innerText = `${totalSampah.toFixed(1)} kg`;
+      document.getElementById("stat-poin").innerText = `${totalPoinBeredar} pts`;
+      document.getElementById("stat-partisipasi").innerText = `${totalPartisipasi} Kali`;
+      document.getElementById("stat-hadiah").innerText = `${totalHadiahDitukar} Pcs`;
+      document.getElementById("record-count").innerText = `${dataTransaksi.length} Data`;
+
+      // 2. RENDERING RIWAYAT TRANSAKSI TERBARU (Hari Ini/Terbaru di atas)
+      if (dataTransaksi.length === 0) {
+        emptyState.classList.remove("hidden");
+      } else {
+        emptyState.classList.add("hidden");
+        const dataRiwayatUrut = [...dataTransaksi].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+        dataRiwayatUrut.forEach((siswa, index) => {
+          const tipeBadge = siswa.tipe === "deposit" 
+            ? "bg-eco-100 text-eco-800 border-eco-200" 
+            : "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+          const beratText = siswa.tipe === "deposit" ? `${siswa.berat} kg` : "-";
+          const jenisText = siswa.tipe === "deposit" ? `Tabungan ${siswa.jenis}` : "Aksi Bersih";
+
+          tabel.innerHTML += `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-500 text-sm">${index + 1}</td>
+              <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">${siswa.nama}</td>
+              <td class="py-3.5 px-4 text-center">
+                <span class="inline-block px-3 py-1 text-xs font-bold rounded-full border ${tipeBadge}">
+                  ${jenisText}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-center font-semibold text-slate-600 text-sm">${beratText}</td>
+              <td class="py-3.5 px-4 text-center font-bold text-eco-600 text-sm">+${siswa.poin} pts</td>
+              <td class="py-3.5 px-4 text-center no-print">
+                <button onclick="hapusTransaksi('${siswa.id}', '${siswa.nama.replace(/'/g, "\\'")}')" class="p-2 bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-all" title="Hapus Data">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      // 3. RENDERING LEADERBOARD KONTRIBUSI & SISA POIN
+      const rankingList = Object.values(rekapSiswa).sort((a, b) => b.totalPoin - a.totalPoin);
+
+      // Render 3 Teratas secara Visual Menarik (Podium)
+      const topThreeDiv = document.getElementById("top-three");
+      topThreeDiv.innerHTML = "";
+      
+      const podiumConfigs = [
+        { bg: "bg-amber-50 border-amber-200", icon: "🥇", text: "text-amber-800", label: "Penabung Teraktif" }, // Rank 1
+        { bg: "bg-slate-50 border-slate-200", icon: "🥈", text: "text-slate-700", label: "Hebat!" }, // Rank 2
+        { bg: "bg-orange-50 border-orange-200", icon: "🥉", text: "text-orange-800", label: "Semangat!" } // Rank 3
+      ];
+
+      for (let i = 0; i < Math.min(3, rankingList.length); i++) {
+        const p = rankingList[i];
+        const podium = podiumConfigs[i];
+        const poinAktif = Math.max(0, p.totalPoin);
+        topThreeDiv.innerHTML += `
+          <div class="border ${podium.bg} ${podium.text} p-4 rounded-2xl text-center shadow-sm flex flex-col justify-center items-center">
+            <span class="text-3xl mb-1">${podium.icon}</span>
+            <span class="text-[10px] font-extrabold uppercase tracking-widest opacity-60">${podium.label}</span>
+            <h4 class="font-extrabold text-sm truncate w-full mt-1">${p.nama}</h4>
+            <span class="font-black text-lg">${poinAktif} Poin</span>
+            <span class="text-xs font-semibold opacity-75">${p.totalSampah.toFixed(1)} kg sampah</span>
+          </div>
+        `;
+      }
+
+      // Render Tabel Peringkat Siswa Lengkap
+      rankingList.forEach((siswa, index) => {
+        let badgeRank = `<span class="text-xs font-bold text-slate-500">${index + 1}</span>`;
+        if (index === 0) badgeRank = "👑";
+        else if (index === 1) badgeRank = "🥈";
+        else if (index === 2) badgeRank = "🥉";
+
+        const sisaPoin = Math.max(0, siswa.totalPoin);
+
+        tabelRanking.innerHTML += `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-2.5 px-4 text-center font-bold">${badgeRank}</td>
+            <td class="py-2.5 px-4 font-bold text-slate-800 text-xs md:text-sm">${siswa.nama}</td>
+            <td class="py-2.5 px-4 text-center font-semibold text-slate-600 text-xs">${siswa.totalSampah.toFixed(1)} kg</td>
+            <td class="py-2.5 px-4 text-right font-black text-emerald-600 text-xs md:text-sm">${sisaPoin} pts</td>
+          </tr>
+        `;
+      });
+
+      // 4. RENDERING RIWAYAT KLAIM PENUKARAN HADIAH
+      if (dataHadiah.length === 0) {
+        emptyHadiahState.classList.remove("hidden");
+      } else {
+        emptyHadiahState.classList.add("hidden");
+        const dataHadiahUrut = [...dataHadiah].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+        
+        dataHadiahUrut.forEach((h) => {
+          const tglFormat = new Date(h.tanggal).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          tabelHadiahKlaim.innerHTML += `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="py-2 px-4 font-bold text-slate-700">${h.namaSiswa}</td>
+              <td class="py-2 px-4 text-purple-700 font-semibold">${h.namaHadiah}</td>
+              <td class="py-2 px-4 text-center font-bold text-rose-600">-${h.poinDipotong} pts</td>
+              <td class="py-2 px-4 text-right text-xs text-slate-400">${tglFormat}</td>
+            </tr>
+          `;
+        });
+      }
+
+      // Re-render grafik proporsi jenis sampah
+      updateChartProporsi(proporsiJenis);
+
+      // Sinkronisasi data ulang di mode Siswa jika siswa sedang mengetik namanya
+      pencarianProfilSiswa();
+
+      // Inisialisasi Ulang Lucide Icons untuk tombol dinamis baru
+      lucide.createIcons();
+    }
+
+    // Pembuatan & Update Grafik Proporsi Sampah (Chart.js)
+    function updateChartProporsi(proporsi) {
+      const ctx = document.getElementById('chartProporsiSampah').getContext('2d');
+      const values = [proporsi.Plastik, proporsi.Kertas, proporsi.Kaleng, proporsi.Kaca, proporsi.Logam];
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      const totalData = values.reduce((a, b) => a + b, 0);
+      if (totalData === 0) {
+        chartInstance = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Belum Ada Data'],
+            datasets: [{
+              data: [1],
+              backgroundColor: ['#e2e8f0']
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+        return;
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Plastik', 'Kertas', 'Kaleng', 'Kaca', 'Logam'],
+          datasets: [{
+            data: values,
+            backgroundColor: [
+              '#38bdf8', // Plastik (Sky)
+              '#fb7185', // Kertas (Rose)
+              '#fbbf24', // Kaleng (Amber)
+              '#34d399', // Kaca (Emerald)
+              '#a78bfa'  // Logam (Purple)
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 8,
+                padding: 6,
+                font: { family: 'sans-serif', size: 9, weight: 'bold' }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Fungsi global agar dipanggil oleh HTML untuk mode siswa
+    window.pencarianProfilSiswa = function() {
+      const query = document.getElementById("pencarian-siswa").value.trim().toUpperCase();
+      const container = document.getElementById("profil-siswa-container");
+      
+      if (!query) {
+        container.classList.add("hidden");
+        return;
+      }
+
+      // Ambil seluruh data transaksi milik siswa ini
+      const riwayatSaya = dataTransaksi.filter(t => t.nama.toUpperCase() === query);
+      const riwayatHadiahSaya = dataHadiah.filter(h => h.namaSiswa.toUpperCase() === query);
+
+      if (riwayatSaya.length === 0 && riwayatHadiahSaya.length === 0) {
+        container.classList.add("hidden");
+        return;
+      }
+
+      container.classList.remove("hidden");
+      document.getElementById("profil-nama").innerText = query;
+
+      let totalBerat = 0;
+      let totalPoinDiperoleh = 0;
+      let totalPoinDipotong = 0;
+
+      riwayatSaya.forEach(t => {
+        totalBerat += (t.berat || 0);
+        totalPoinDiperoleh += (t.poin || 0);
+      });
+
+      riwayatHadiahSaya.forEach(h => {
+        totalPoinDipotong += (h.poinDipotong || 0);
+      });
+
+      const sisaPoin = totalPoinDiperoleh - totalPoinDipotong;
+
+      document.getElementById("profil-total-sampah").innerText = `Kontribusi: ${totalBerat.toFixed(1)} kg sampah`;
+      document.getElementById("profil-poin").innerText = sisaPoin;
+
+      const logRiwayat = document.getElementById("profil-riwayat");
+      logRiwayat.innerHTML = "";
+
+      const historiGabungan = [];
+      
+      riwayatSaya.forEach(t => {
+        historiGabungan.push({
+          pesan: t.tipe === "deposit" ? `Setor ${t.jenis} (${t.berat} kg)` : `Ikut Aksi Bersih`,
+          poin: `+${t.poin}`,
+          warna: "text-emerald-400",
+          tgl: new Date(t.tanggal)
+        });
+      });
+
+      riwayatHadiahSaya.forEach(h => {
+        historiGabungan.push({
+          pesan: `Tukar: ${h.namaHadiah}`,
+          poin: `-${h.poinDipotong}`,
+          warna: "text-rose-400",
+          tgl: new Date(h.tanggal)
+        });
+      });
+
+      historiGabungan.sort((a, b) => b.tgl - a.tgl);
+
+      if (historiGabungan.length === 0) {
+        logRiwayat.innerHTML = `<p class="text-xs text-indigo-300 italic">Belum ada riwayat kegiatan.</p>`;
+      } else {
+        historiGabungan.forEach((h) => {
+          logRiwayat.innerHTML += `
+            <div class="flex justify-between items-center bg-white/5 px-2.5 py-1.5 rounded-lg text-xs">
+              <span class="text-indigo-100 font-medium">${h.pesan}</span>
+              <span class="font-bold ${h.warna}">${h.poin} Pts</span>
+            </div>
+          `;
+        });
+      }
+    };
+
+    lucide.createIcons();
+  </script>
+
+  <!-- KONTROL LOGIKA UI UMUM (NON-DATABASE) -->
+  <script>
+    // Kalkulator Estetika Poin Instan pada Form Input
+    function hitungPerkiraanPoin() {
+      const jenisSelect = document.getElementById("jenis");
+      const beratInput = document.getElementById("berat");
+      const estimasiPoinSpan = document.getElementById("estimasi-poin");
+
+      const berat = parseFloat(beratInput.value) || 0;
+      const multiplier = parseFloat(jenisSelect.options[jenisSelect.selectedIndex].getAttribute("data-multiplier"));
+      
+      const perkiraan = Math.round(berat * multiplier);
+      estimasiPoinSpan.innerText = `${perkiraan} pts`;
+    }
+
+    // Toggle Tampilan Mode Petugas / Mode Siswa
+    function setMode(mode) {
+      const btnPetugas = document.getElementById("btn-mode-petugas");
+      const btnSiswa = document.getElementById("btn-mode-siswa");
+      const panelPetugas = document.getElementById("panel-petugas");
+      const panelSiswa = document.getElementById("panel-siswa");
+
+      if (mode === 'petugas') {
+        btnPetugas.className = "px-4 py-2 rounded-xl text-sm font-bold transition-all bg-white text-eco-700 shadow";
+        btnSiswa.className = "px-4 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:text-slate-800";
+        panelPetugas.classList.remove("hidden");
+        panelSiswa.classList.add("hidden");
+        showToast("Masuk ke Mode Petugas (Admin)", "shield-check", "emerald");
+      } else {
+        btnSiswa.className = "px-4 py-2 rounded-xl text-sm font-bold transition-all bg-white text-indigo-700 shadow";
+        btnPetugas.className = "px-4 py-2 rounded-xl text-sm font-bold transition-all text-slate-600 hover:text-slate-800";
+        panelSiswa.classList.remove("hidden");
+        panelPetugas.classList.add("hidden");
+        showToast("Masuk ke Portal Pencarian Siswa", "user", "indigo");
+      }
+    }
+
+    // KONTROL POPUP DIALOG PENUKARAN HADIAH
+    function bukaModalTukar(namaHadiah, biaya) {
+      const modal = document.getElementById("modalTukar");
+      document.getElementById("nama-hadiah-pilihan").innerText = namaHadiah;
+      document.getElementById("biaya-hadiah-pilihan").innerText = biaya;
+      document.getElementById("nama-siswa-tukar").value = "";
+
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector('div').classList.remove("scale-95");
+      }, 10);
+    }
+
+    function tutupModalTukar() {
+      const modal = document.getElementById("modalTukar");
+      modal.classList.add("opacity-0");
+      modal.querySelector('div').classList.add("scale-95");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+      }, 200);
+    }
+
+    // Kustom Dialog Konfirmasi Reset Data (Menggantikan confirm)
+    function konfirmasiReset() {
+      const modal = document.getElementById("confirmModal");
+      const btnConfirm = document.getElementById("btn-confirm-delete");
+      
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.querySelector('div').classList.remove("scale-95");
+      }, 10);
+
+      btnConfirm.onclick = function() {
+        window.resetSemuaData();
+      };
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById("confirmModal");
+      modal.classList.add("opacity-0");
+      modal.querySelector('div').classList.add("scale-95");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+      }, 200);
+    }
+
+    // Sistem Notifikasi Toast Kustom (Menggantikan alert bawaan browser)
+    function showToast(message, iconName, colorName) {
+      const toast = document.getElementById("toast");
+      const iconSpan = document.getElementById("toast-icon");
+      const msgSpan = document.getElementById("toast-message");
+
+      let colorClass = "bg-slate-900 border-l-4 border-emerald-500";
+      if (colorName === "rose") colorClass = "bg-slate-900 border-l-4 border-rose-500";
+      if (colorName === "amber") colorClass = "bg-slate-900 border-l-4 border-amber-500";
+      if (colorName === "indigo") colorClass = "bg-slate-900 border-l-4 border-indigo-500";
+      
+      toast.className = `fixed bottom-6 right-6 transform rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 z-50 text-white px-6 py-4 ${colorClass}`;
+      msgSpan.innerText = message;
+      iconSpan.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+
+      lucide.createIcons();
+
+      toast.classList.remove("translate-y-24", "opacity-0");
+      
+      setTimeout(() => {
+        toast.classList.add("translate-y-24", "opacity-0");
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
